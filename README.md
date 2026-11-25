@@ -32,6 +32,53 @@ Technical scope document (TDS)
   -> exports (hours CSV, schedule XML)
 ```
 
+## Worked example: scope document → estimate → quote package
+
+This is the exact output of `python -m src.run_demo` on the sample scope in
+`data/sample_tds.md` — a fictional heat-exchanger replacement at the
+Harborview Generating Station, Detailed design stage, Mechanical and
+Electrical / I&C disciplines, six deliverables, package due within 12 weeks.
+
+**Step 1 — intake.** The scope document is parsed into its deliverables
+(Design Plan, Walkdown Report, Technical Specification, Design Manual,
+Vendor Documentation Review, Closeout) and its stage/disciplines.
+
+**Step 2 — nearest past-estimate lookup.** Five deliverables match past
+estimate PE-1042 (similarity 0.18); Vendor Documentation Review matches
+PE-1018 (similarity 0.12). Every matched row lands at Medium confidence —
+close enough to ground the hours, weak enough that the engineer should still
+check them.
+
+**Step 3 — estimate.** WBS templates expand each deliverable into hour rows:
+
+| Deliverable | Tasks | Hours |
+| --- | ---: | ---: |
+| Design Plan | 4 | 40.0 |
+| Walkdown Report | 4 | 56.0 |
+| Technical Specification | 4 | 64.0 |
+| Design Manual | 4 | 76.0 |
+| Vendor Documentation Review | 4 | 28.0 |
+| Closeout | 3 | 20.0 |
+| **Engineering subtotal** | **23** | **284.0** |
+| Project Management (10% of engineering) | 3 | 28.4 |
+| **Total** | **26** | **312.4** |
+
+The biggest single row is "Draft design manual" at 40.0 hours; the smallest
+are "Receive and log vendor documents" and "Issue review package" at 3.5
+hours each. No row is Low confidence in this run, so nothing is flagged as
+template-only hours.
+
+**Step 4 — schedule.** Duration comes from hours, one resource per task, and
+7.5 hours per working day: **10.1 working days** end to end. Stages run
+sequentially and same-stage disciplines run in parallel, so the 40-hour
+design-manual draft (5.3 days) sets the pace rather than the raw total.
+
+**Step 5 — quote package.** The estimate exports to `out/estimate_hours.csv`
+and `out/estimate_schedule.xml` — the hours and schedule that go into the
+proposal's quote. Review integrity holds throughout: the owner cannot approve
+their own estimate, the estimate is approved as revision 1, and editing
+approved content is blocked until it is reopened as revision 2.
+
 ## Hour confidence
 
 Confidence is a property of the evidence behind the hours, not a measure of
